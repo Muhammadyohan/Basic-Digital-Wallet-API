@@ -76,3 +76,15 @@ async def update_item(item_id: int, item: UpdateItem) -> Item:
             db.refresh(dbItem)
 
     return Item.from_orm(dbItem)
+
+
+@app.delete("/item/{item_id}")
+async def delete_item(item_id: int) -> dict:
+    with Session(engine) as db:
+        dbItem = db.get(DBItem, item_id)
+        if dbItem is None:
+            raise HTTPException(status_code=404, detail="Item not found")
+        db.delete(dbItem)
+        db.commit()
+
+    return dict(message="Item deleted successfully")
