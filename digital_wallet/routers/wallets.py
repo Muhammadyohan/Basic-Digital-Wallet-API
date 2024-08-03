@@ -1,6 +1,6 @@
 from fastapi import APIRouter, HTTPException
 
-from sqlmodel import Session, select
+from sqlmodel import Session
 
 from .sqlmodel_engine import engine
 
