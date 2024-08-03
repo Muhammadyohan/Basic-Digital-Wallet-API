@@ -44,3 +44,14 @@ async def update_wallet(wallet_id: int, wallet: UpdateWallet) -> Wallet:
         db.refresh(db_wallet)
 
     return Wallet.from_orm(db_wallet)
+
+@router.delete("/wallet/{wallet_id}", tags=["wallet"])
+async def delete_wallet(wallet_id: int) -> dict:
+    with Session(engine) as db:
+        db_wallet = db.get(DBWallet, wallet_id)
+        if db_wallet is None:
+            raise HTTPException(status_code=404, detail="Item not found")
+        db.delete(db_wallet)
+        db.commit()
+
+    return dict(message="Wallet deleted successfully")
