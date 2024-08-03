@@ -13,13 +13,13 @@ router = APIRouter()
 @router.post("/merchant", tags=["merchant"])
 async def create_merchant(item: CreateMerchant) -> Merchant:
     data = item.dict()
-    db_item = DBMerchant(**data)
+    db_merchant = DBMerchant(**data)
     with Session(engine) as db:
-        db.add(db_item)
+        db.add(db_merchant)
         db.commit()
-        db.refresh(db_item)
+        db.refresh(db_merchant)
 
-    return Merchant.from_orm(db_item)
+    return Merchant.from_orm(db_merchant)
 
 
 @router.get("/merchants", tags=["merchant"])
