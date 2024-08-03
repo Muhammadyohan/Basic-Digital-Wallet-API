@@ -45,3 +45,18 @@ async def get_merchant(merchant_id: int) -> Merchant:
             raise HTTPException(status_code=404, detail="Item not found")
 
     return Merchant.from_orm(db_merchant)
+
+
+@router.put("/merchant/{merchant_id}", tags=["merchant"])
+async def update_merchant(merchant_id: int, merchant: UpdateMerchant) -> Merchant:
+    with Session(engine) as db:
+        db_merchant = db.get(DBMerchant, merchant_id)
+        if db_merchant is None:
+            raise HTTPException(status_code=404, detail="Item not found")
+        for key, value in merchant.dict().items():
+            setattr(db_merchant, key, value)
+        db.add(db_merchant)
+        db.commit()
+        db.refresh(db_merchant)
+
+    return Merchant.from_orm(db_merchant)
