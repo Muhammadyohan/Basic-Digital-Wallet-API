@@ -4,40 +4,41 @@ from pydantic import BaseModel, ConfigDict
 
 from sqlmodel import Field, SQLModel, Relationship
 
-from merchant import Merchant
+from item import Item
 
 
-class BaseItem(BaseModel):
+class BaseMerchant(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
     name: str
     description: str | None = None
-    price: float = 0.12
-    tax: float | None = None
+    telephone: str | None = None
+    email: str | None = None
+    age: int | None = None
 
 
-class CreateItem(BaseItem):
+class CreateMerchant(BaseMerchant):
     pass
 
 
-class UpdateItem(BaseItem):
+class UpdateMerchant(BaseMerchant):
     pass
 
 
-class Item(BaseItem):
+class Merchant(BaseMerchant):
     id: int
 
 
-class DBItem(Item, SQLModel, table=True):
+class DBMerchant(Merchant, SQLModel, table=True):
     id: Optional[int] = Field(default=None, primary_key=True)
 
-    merchant_id: int | None = Field(default=None, foreign_key="merchant.id")
-    merchant: Merchant | None = Relationship(back_populates="items")
+    items: list["Item"] = Relationship(back_populates="merchant")
 
 
-class ItemList(BaseModel):
+class MerchantList(BaseModel):
     model_config = ConfigDict(from_attributes=True)
-    items: list[Item]
+
+    merchants: list[Merchant]
     page: int
     page_size: int
     size_per_page: int
