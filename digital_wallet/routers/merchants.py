@@ -5,7 +5,7 @@ from sqlmodel import Session, select
 from .sqlmodel_engine import engine
 
 from models.merchant import Merchant, CreateMerchant, UpdateMerchant, MerchantList
-from models.db_models import DBMerchant
+from models.db_models import DBMerchant, DBItem
 
 router = APIRouter()
 
@@ -60,3 +60,15 @@ async def update_merchant(merchant_id: int, merchant: UpdateMerchant) -> Merchan
         db.refresh(db_merchant)
 
     return Merchant.from_orm(db_merchant)
+
+
+@router.delete("/merchant/{merchant_id}", tags=["merchant"])
+async def delete_merchant(merchant_id: int) -> dict:
+    with Session(engine) as db:
+        db_merchant = db.get(DBMerchant, merchant_id)
+        if db_merchant is None:
+            raise HTTPException(status_code=404, detail="Item not found")
+        db.delete(db_merchant)
+        db.commit()
+
+    return dict(message="Merchant deleted successfully")
