@@ -22,3 +22,10 @@ async def create_wallet(wallet: CreateWallet, merchant_id: int) -> Wallet:
 
     return Wallet.from_orm(db_wallet)
 
+@router.get("/wallet/{wallet_id}", tags=["wallet"])
+async def get_wallet(wallet_id: int) -> Wallet:
+    with Session(engine) as db:
+        db_wallet = db.get(DBWallet, wallet_id)
+        if db_wallet is None:
+            raise HTTPException(status_code=404, detail="Item not found")
+        return Wallet.from_orm(db_wallet)
