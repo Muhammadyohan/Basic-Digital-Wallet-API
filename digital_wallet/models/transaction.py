@@ -18,3 +18,10 @@ class UpdateTransaction(BaseTransaction):
 
 class Transaction(BaseTransaction):
     id: int
+
+class TransactionList(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+    transactions: list[Transaction]
+    page: int
+    page_size: int
+    size_per_page: int
