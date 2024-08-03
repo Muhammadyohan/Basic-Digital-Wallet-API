@@ -63,3 +63,15 @@ async def get_transactions(wallet_id: int) -> TransactionList:
         page_size=len(db_transactions),
         size_per_page=len(db_transactions),
     )
+
+
+@router.delete("/transaction/{transaction_id}", tags=["transaction"])
+async def delete_transaction(transaction_id: int) -> dict:
+    with Session(engine) as db:
+        db_transaction = db.get(DBTransaction, transaction_id)
+        if db_transaction is None:
+            raise HTTPException(status_code=404, detail="Item not found")
+        db.delete(db_transaction)
+        db.commit()
+
+    return dict(message="Transaction deleted successfully")
