@@ -61,3 +61,18 @@ async def get_item(item_id: int) -> Item:
         if dbItem is None:
             raise HTTPException(status_code=404, detail="Item not found")
         return Item.from_orm(dbItem)
+
+
+@app.put("/item/{item_id}")
+async def update_item(item_id: int, item: UpdateItem) -> Item:
+    with Session(engine) as db:
+        dbItem = db.get(DBItem, item_id)
+        if dbItem is None:
+            raise HTTPException(status_code=404, detail="Item not found")
+        for key, value in item.dict().items():
+            setattr(dbItem, key, value)
+            db.add(dbItem)
+            db.commit()
+            db.refresh(dbItem)
+
+    return Item.from_orm(dbItem)
