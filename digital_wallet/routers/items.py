@@ -42,6 +42,7 @@ async def get_item(item_id: int) -> Item:
         db_item = db.get(DBItem, item_id)
         if db_item is None:
             raise HTTPException(status_code=404, detail="Item not found")
+        
         return Item.from_orm(db_item)
 
 

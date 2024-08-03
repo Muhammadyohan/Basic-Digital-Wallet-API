@@ -38,3 +38,13 @@ async def create_transaction(
         db.refresh(db_transaction)
 
     return Transaction.from_orm(db_transaction)
+
+
+@router.get("/transaction/{transaction_id}", tags=["transaction"])
+async def get_transaction(transaction_id: int) -> Transaction:
+    with Session(engine) as db:
+        db_transaction = db.get(DBTransaction, transaction_id)
+        if db_transaction is None:
+            raise HTTPException(status_code=404, detail="Item not found")
+
+        return Transaction.from_orm(db_transaction)
