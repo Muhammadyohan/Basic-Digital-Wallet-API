@@ -1,6 +1,6 @@
 from fastapi import FastAPI
 
-from routers import items, merchants
+from routers import items, merchants, wallets
 
 from sqlmodel import SQLModel
 
@@ -11,6 +11,8 @@ app = FastAPI()
 
 app.include_router(items.router)
 app.include_router(merchants.router)
+app.include_router(wallets.router)
+
 
 SQLModel.metadata.create_all(engine)
 

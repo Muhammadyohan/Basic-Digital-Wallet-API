@@ -5,7 +5,7 @@ from sqlmodel import Session, select
 from .sqlmodel_engine import engine
 
 from models.merchant import Merchant, CreateMerchant, UpdateMerchant, MerchantList
-from models.db_models import DBMerchant, DBItem
+from models.db_models import DBMerchant
 
 router = APIRouter()
 
