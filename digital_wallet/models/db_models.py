@@ -23,12 +23,16 @@ class DBItem(Item, SQLModel, table=True):
     merchant_id: Optional[int] = Field(default=None, foreign_key="dbmerchant.id")
     merchant: Optional[DBMerchant] = Relationship(back_populates="items")
 
+    transactions: list["DBTransaction"] = Relationship(back_populates="item")
+
 
 class DBWallet(Wallet, SQLModel, table=True):
     id: Optional[int] = Field(default=None, primary_key=True)
 
     merchant_id: Optional[int] = Field(default=None, foreign_key="dbmerchant.id")
     merchant: Optional[DBMerchant] = Relationship(back_populates="wallet")
+
+    transactions: list["DBTransaction"] = Relationship(back_populates="wallet")
 
 
 class DBTransaction(Transaction, SQLModel, table=True):
