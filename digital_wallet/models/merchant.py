@@ -1,10 +1,4 @@
-from typing import Optional
-
 from pydantic import BaseModel, ConfigDict
-
-from sqlmodel import Field, SQLModel, Relationship
-
-from item import Item
 
 
 class BaseMerchant(BaseModel):
@@ -27,12 +21,6 @@ class UpdateMerchant(BaseMerchant):
 
 class Merchant(BaseMerchant):
     id: int
-
-
-class DBMerchant(Merchant, SQLModel, table=True):
-    id: Optional[int] = Field(default=None, primary_key=True)
-
-    items: list["Item"] = Relationship(back_populates="merchant")
 
 
 class MerchantList(BaseModel):
