@@ -1,23 +1,13 @@
 from fastapi import FastAPI
 
-from routers import items, merchants, wallets, transactions
-
-from sqlmodel import SQLModel
-
-from routers.sqlmodel_engine import engine
-
-app = FastAPI()
+from .models import init_db
+from .routers import init_routers
 
 
-app.include_router(items.router)
-app.include_router(merchants.router)
-app.include_router(wallets.router)
-app.include_router(transactions.router)
+def create_app():
+    app = FastAPI()
 
+    init_routers(app)
+    init_db()
 
-SQLModel.metadata.create_all(engine)
-
-
-@app.get("/")
-def read_root():
-    return {"Hello": "World"}
+    return app

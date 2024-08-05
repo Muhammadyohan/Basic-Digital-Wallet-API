@@ -2,15 +2,15 @@ from fastapi import APIRouter, HTTPException
 
 from sqlmodel import Session, select
 
-from .sqlmodel_engine import engine
+from ..models import engine
 
-from models.transaction import Transaction, CreateTransaction, TransactionList
-from models.db_models import DBTransaction, DBWallet, DBItem
+from ..models.transaction import Transaction, CreateTransaction, TransactionList
+from ..models.db_models import DBTransaction, DBWallet, DBItem
 
-router = APIRouter()
+router = APIRouter(prefix="/transactions", tags=["transaction"])
 
 
-@router.post("/transaction/{wallet_id}/{item_id}", tags=["transaction"])
+@router.post("/{wallet_id}/{item_id}")
 async def create_transaction(
     transaction: CreateTransaction, wallet_id: int, item_id: int
 ) -> Transaction:
@@ -40,7 +40,7 @@ async def create_transaction(
     return Transaction.from_orm(db_transaction)
 
 
-@router.get("/transaction/{transaction_id}", tags=["transaction"])
+@router.get("/{transaction_id}")
 async def get_transaction(transaction_id: int) -> Transaction:
     with Session(engine) as db:
         db_transaction = db.get(DBTransaction, transaction_id)
@@ -50,7 +50,7 @@ async def get_transaction(transaction_id: int) -> Transaction:
         return Transaction.from_orm(db_transaction)
 
 
-@router.get("/transactions/{wallet_id}", tags=["transaction"])
+@router.get("/{wallet_id}")
 async def get_transactions(wallet_id: int) -> TransactionList:
     with Session(engine) as db:
         db_transactions = db.exec(
@@ -65,7 +65,7 @@ async def get_transactions(wallet_id: int) -> TransactionList:
     )
 
 
-@router.delete("/transaction/{transaction_id}", tags=["transaction"])
+@router.delete("/{transaction_id}")
 async def delete_transaction(transaction_id: int) -> dict:
     with Session(engine) as db:
         db_transaction = db.get(DBTransaction, transaction_id)

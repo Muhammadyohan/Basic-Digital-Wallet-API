@@ -1,4 +1,4 @@
-from sqlmodel import create_engine, Session
+from sqlmodel import SQLModel, create_engine, Session
 
 connect_args = {}
 
@@ -14,3 +14,7 @@ def get_db():
         yield db
     finally:
         db.close()
+
+
+def init_db():
+    SQLModel.metadata.create_all(engine)

@@ -2,15 +2,15 @@ from fastapi import APIRouter, HTTPException
 
 from sqlmodel import Session, select
 
-from .sqlmodel_engine import engine
+from ..models import engine
 
-from models.merchant import Merchant, CreateMerchant, UpdateMerchant, MerchantList
-from models.db_models import DBMerchant
+from ..models.merchant import Merchant, CreateMerchant, UpdateMerchant, MerchantList
+from ..models.db_models import DBMerchant
 
-router = APIRouter()
+router = APIRouter(prefix="/merchants", tags=["merchant"])
 
 
-@router.post("/merchant", tags=["merchant"])
+@router.post("")
 async def create_merchant(item: CreateMerchant) -> Merchant:
     data = item.dict()
     db_merchant = DBMerchant(**data)
@@ -22,7 +22,7 @@ async def create_merchant(item: CreateMerchant) -> Merchant:
     return Merchant.from_orm(db_merchant)
 
 
-@router.get("/merchants", tags=["merchant"])
+@router.get("")
 async def get_merchants(page: int = 1, page_size: int = 10) -> MerchantList:
     with Session(engine) as db:
         db_merchants = db.exec(
@@ -37,7 +37,7 @@ async def get_merchants(page: int = 1, page_size: int = 10) -> MerchantList:
     )
 
 
-@router.get("/merchant/{merchant_id}", tags=["merchant"])
+@router.get("/{merchant_id}")
 async def get_merchant(merchant_id: int) -> Merchant:
     with Session(engine) as db:
         db_merchant = db.get(DBMerchant, merchant_id)
@@ -47,7 +47,7 @@ async def get_merchant(merchant_id: int) -> Merchant:
     return Merchant.from_orm(db_merchant)
 
 
-@router.put("/merchant/{merchant_id}", tags=["merchant"])
+@router.put("/{merchant_id}")
 async def update_merchant(merchant_id: int, merchant: UpdateMerchant) -> Merchant:
     with Session(engine) as db:
         db_merchant = db.get(DBMerchant, merchant_id)
@@ -62,7 +62,7 @@ async def update_merchant(merchant_id: int, merchant: UpdateMerchant) -> Merchan
     return Merchant.from_orm(db_merchant)
 
 
-@router.delete("/merchant/{merchant_id}", tags=["merchant"])
+@router.delete("/{merchant_id}")
 async def delete_merchant(merchant_id: int) -> dict:
     with Session(engine) as db:
         db_merchant = db.get(DBMerchant, merchant_id)

@@ -2,15 +2,15 @@ from fastapi import APIRouter, HTTPException
 
 from sqlmodel import Session
 
-from .sqlmodel_engine import engine
+from ..models import engine
 
-from models.wallet import Wallet, CreateWallet, UpdateWallet
-from models.db_models import DBWallet
+from ..models.wallet import Wallet, CreateWallet, UpdateWallet
+from ..models.db_models import DBWallet
 
-router = APIRouter()
+router = APIRouter(prefix="/wallets", tags=["wallet"])
 
 
-@router.post("/wallet/{merchant_id}", tags=["wallet"])
+@router.post("/{merchant_id}")
 async def create_wallet(wallet: CreateWallet, merchant_id: int) -> Wallet:
     data = wallet.dict()
     db_wallet = DBWallet(**data)
@@ -22,7 +22,7 @@ async def create_wallet(wallet: CreateWallet, merchant_id: int) -> Wallet:
 
     return Wallet.from_orm(db_wallet)
 
-@router.get("/wallet/{wallet_id}", tags=["wallet"])
+@router.get("/{wallet_id}")
 async def get_wallet(wallet_id: int) -> Wallet:
     with Session(engine) as db:
         db_wallet = db.get(DBWallet, wallet_id)
@@ -30,7 +30,7 @@ async def get_wallet(wallet_id: int) -> Wallet:
             raise HTTPException(status_code=404, detail="Item not found")
         return Wallet.from_orm(db_wallet)
     
-@router.put("/wallet/{wallet_id}", tags=["wallet"])
+@router.put("/{wallet_id}")
 async def update_wallet(wallet_id: int, wallet: UpdateWallet) -> Wallet:
     with Session(engine) as db:
         db_wallet = db.get(DBWallet, wallet_id)
@@ -45,7 +45,7 @@ async def update_wallet(wallet_id: int, wallet: UpdateWallet) -> Wallet:
 
     return Wallet.from_orm(db_wallet)
 
-@router.delete("/wallet/{wallet_id}", tags=["wallet"])
+@router.delete("/{wallet_id}")
 async def delete_wallet(wallet_id: int) -> dict:
     with Session(engine) as db:
         db_wallet = db.get(DBWallet, wallet_id)

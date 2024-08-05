@@ -2,16 +2,16 @@ from fastapi import APIRouter, HTTPException
 
 from sqlmodel import Session, select
 
-from .sqlmodel_engine import engine
+from ..models import engine
 
-from models.item import Item, CreateItem, UpdateItem, ItemList
-from models.db_models import DBItem
-
-
-router = APIRouter()
+from ..models.item import Item, CreateItem, UpdateItem, ItemList
+from ..models.db_models import DBItem
 
 
-@router.post("/item/{merchant_id}", tags=["item"])
+router = APIRouter(prefix="/items", tags=["item"])
+
+
+@router.post("/{merchant_id}")
 async def create_item(item: CreateItem, merchant_id: int) -> Item:
     data = item.dict()
     db_item = DBItem(**data)
@@ -24,7 +24,7 @@ async def create_item(item: CreateItem, merchant_id: int) -> Item:
     return Item.from_orm(db_item)
 
 
-@router.get("/items", tags=["item"])
+@router.get("")
 async def get_items(page: int = 1, page_size: int = 10) -> ItemList:
     with Session(engine) as db:
         db_items = db.exec(
@@ -36,17 +36,17 @@ async def get_items(page: int = 1, page_size: int = 10) -> ItemList:
     )
 
 
-@router.get("/item/{item_id}", tags=["item"])
+@router.get("/{item_id}")
 async def get_item(item_id: int) -> Item:
     with Session(engine) as db:
         db_item = db.get(DBItem, item_id)
         if db_item is None:
             raise HTTPException(status_code=404, detail="Item not found")
-        
+
         return Item.from_orm(db_item)
 
 
-@router.put("/item/{item_id}", tags=["item"])
+@router.put("/{item_id}")
 async def update_item(item_id: int, item: UpdateItem) -> Item:
     with Session(engine) as db:
         db_item = db.get(DBItem, item_id)
@@ -61,7 +61,7 @@ async def update_item(item_id: int, item: UpdateItem) -> Item:
     return Item.from_orm(db_item)
 
 
-@router.delete("/item/{item_id}", tags=["item"])
+@router.delete("/{item_id}")
 async def delete_item(item_id: int) -> dict:
     with Session(engine) as db:
         db_item = db.get(DBItem, item_id)
