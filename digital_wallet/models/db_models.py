@@ -1,11 +1,13 @@
 from typing import Optional
 
 from sqlmodel import Field, SQLModel, Relationship
+from sqlalchemy import UniqueConstraint
 
 from .merchant import Merchant
 from .item import Item
 from .wallet import Wallet
 from .transaction import Transaction
+from .user import User
 
 
 class DBMerchant(Merchant, SQLModel, table=True):
@@ -47,3 +49,10 @@ class DBTransaction(Transaction, SQLModel, table=True):
 
     item_id: Optional[int] = Field(default=None, foreign_key="items.id")
     item: Optional[DBItem] = Relationship(back_populates="transactions")
+
+
+class DBUser(User, SQLModel, table=True):
+    __tablename__ = "users"
+    __table_args__ = (UniqueConstraint("username"),)
+    id: Optional[int] = Field(default=None, primary_key=True)
+    hashed_password: str
