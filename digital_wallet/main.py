@@ -1,13 +1,21 @@
 from fastapi import FastAPI
 
-from .models import init_db
-from .routers import init_routers
+from . import models
+from . import routers
+
+from . import config
 
 
 def create_app():
+    settings = config.get_settings()
     app = FastAPI()
 
-    init_routers(app)
-    init_db()
+    models.init_db(settings)
+
+    routers.init_routers(app)
+
+    @app.on_event("startup")
+    async def on_startup():
+        await models.create_all()
 
     return app

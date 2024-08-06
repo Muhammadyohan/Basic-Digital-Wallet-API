@@ -1,8 +1,11 @@
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Depends
 
-from sqlmodel import Session, select
+from typing import Annotated
 
-from ..models import engine
+from sqlmodel import select
+from sqlmodel.ext.asyncio.session import AsyncSession
+
+from .. import models
 
 from ..models.merchant import Merchant, CreateMerchant, UpdateMerchant, MerchantList
 from ..models.db_models import DBMerchant
@@ -11,23 +14,28 @@ router = APIRouter(prefix="/merchants", tags=["merchant"])
 
 
 @router.post("")
-async def create_merchant(item: CreateMerchant) -> Merchant:
+async def create_merchant(
+    item: CreateMerchant, session: Annotated[AsyncSession, Depends(models.get_session)]
+) -> Merchant:
     data = item.dict()
     db_merchant = DBMerchant(**data)
-    with Session(engine) as db:
-        db.add(db_merchant)
-        db.commit()
-        db.refresh(db_merchant)
+    session.add(db_merchant)
+    await session.commit()
+    await session.refresh(db_merchant)
 
     return Merchant.from_orm(db_merchant)
 
 
 @router.get("")
-async def get_merchants(page: int = 1, page_size: int = 10) -> MerchantList:
-    with Session(engine) as db:
-        db_merchants = db.exec(
-            select(DBMerchant).offset((page - 1) * page_size).limit(page_size)
-        ).all()
+async def get_merchants(
+    session: Annotated[AsyncSession, Depends(models.get_session)],
+    page: int = 1,
+    page_size: int = 10,
+) -> MerchantList:
+    result = await session.exec(
+        select(DBMerchant).offset((page - 1) * page_size).limit(page_size)
+    )
+    db_merchants = result.all()
 
     return MerchantList(
         merchants=db_merchants,
@@ -38,37 +46,43 @@ async def get_merchants(page: int = 1, page_size: int = 10) -> MerchantList:
 
 
 @router.get("/{merchant_id}")
-async def get_merchant(merchant_id: int) -> Merchant:
-    with Session(engine) as db:
-        db_merchant = db.get(DBMerchant, merchant_id)
-        if db_merchant is None:
-            raise HTTPException(status_code=404, detail="Item not found")
+async def get_merchant(
+    merchant_id: int, session: Annotated[AsyncSession, Depends(models.get_session)]
+) -> Merchant:
+    db_merchant = await session.get(DBMerchant, merchant_id)
+    if db_merchant is None:
+        raise HTTPException(status_code=404, detail="Item not found")
 
     return Merchant.from_orm(db_merchant)
 
 
 @router.put("/{merchant_id}")
-async def update_merchant(merchant_id: int, merchant: UpdateMerchant) -> Merchant:
-    with Session(engine) as db:
-        db_merchant = db.get(DBMerchant, merchant_id)
-        if db_merchant is None:
-            raise HTTPException(status_code=404, detail="Item not found")
-        for key, value in merchant.dict().items():
-            setattr(db_merchant, key, value)
-        db.add(db_merchant)
-        db.commit()
-        db.refresh(db_merchant)
+async def update_merchant(
+    merchant_id: int,
+    merchant: UpdateMerchant,
+    session: Annotated[AsyncSession, Depends(models.get_session)],
+) -> Merchant:
+    db_merchant = await session.get(DBMerchant, merchant_id)
+    if db_merchant is None:
+        raise HTTPException(status_code=404, detail="Item not found")
+    for key, value in merchant.dict().items():
+        setattr(db_merchant, key, value)
+
+    session.add(db_merchant)
+    await session.commit()
+    await session.refresh(db_merchant)
 
     return Merchant.from_orm(db_merchant)
 
 
 @router.delete("/{merchant_id}")
-async def delete_merchant(merchant_id: int) -> dict:
-    with Session(engine) as db:
-        db_merchant = db.get(DBMerchant, merchant_id)
-        if db_merchant is None:
-            raise HTTPException(status_code=404, detail="Item not found")
-        db.delete(db_merchant)
-        db.commit()
+async def delete_merchant(
+    merchant_id: int, session: Annotated[AsyncSession, Depends(models.get_session)]
+) -> dict:
+    db_merchant = await session.get(DBMerchant, merchant_id)
+    if db_merchant is None:
+        raise HTTPException(status_code=404, detail="Item not found")
+    await session.delete(db_merchant)
+    await session.commit()
 
     return dict(message="Merchant deleted successfully")
