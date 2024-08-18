@@ -8,6 +8,7 @@ class BaseUser(BaseModel):
     model_config = ConfigDict(from_attributes=True, populate_by_name=True)
 
     email: str = pydantic.Field(json_schema_extra=dict(example="admin@email.local"))
+    telephone: str = pydantic.Field(json_schema_extra=dict(example="0812345678"))
     username: str = pydantic.Field(json_schema_extra=dict(example="admin"))
     first_name: str = pydantic.Field(json_schema_extra=dict(example="Firstname"))
     last_name: str = pydantic.Field(json_schema_extra=dict(example="Lastname"))
@@ -41,8 +42,15 @@ class ChangePassword(BaseModel):
 
 class Token(BaseModel):
     access_token: str
+    refresh_token: str
     token_type: str
+    expires_in: int
+    expires_at: datetime.datetime
+    scope: str
+    issued_at: datetime.datetime
+    user_id: int
 
 
 class TokenData(BaseModel):
+    user_id: int | None = None
     username: str | None = None

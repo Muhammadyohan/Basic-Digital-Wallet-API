@@ -4,11 +4,12 @@ from pydantic import BaseModel, ConfigDict
 class BaseMerchant(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
-    name: str
+    first_name: str | None = None
+    last_name: str | None = None
     description: str | None = None
     telephone: str | None = None
     email: str | None = None
-    age: int | None = None
+    user_id: int | None = 0
 
 
 class CreateMerchant(BaseMerchant):

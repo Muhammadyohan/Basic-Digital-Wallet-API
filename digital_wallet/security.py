@@ -85,7 +85,7 @@ def create_refresh_token(data: dict, expires_delta: timedelta | None = None) -> 
 async def get_current_user(
     token: Annotated[str, Depends(oauth2_scheme)],
     session: Annotated[AsyncSession, Depends(models.get_session)],
-):
+) -> User:
     settings = config.get_settings()
     credentials_exception = HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED,
@@ -113,7 +113,7 @@ async def get_current_user(
     if db_user is None:
         raise credentials_exception
 
-    user = get_user(db_user, username=token_data.username)
+    user = await session.get(DBUser, db_user["id"])
     return user
 
 
