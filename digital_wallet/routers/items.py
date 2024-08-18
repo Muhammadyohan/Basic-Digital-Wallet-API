@@ -30,6 +30,7 @@ async def create_item(
     db_item = DBItem.model_validate(item)
     db_item.merchant_id = merchant_id
     db_item.user = current_user
+
     session.add(db_item)
     await session.commit()
     await session.refresh(db_item)
@@ -91,7 +92,12 @@ async def update_item(
     if db_item.user_id != current_user.id:
         raise HTTPException(status_code=403, detail="Forbidden")
 
+    merchant_id = db_item.merchant_id
+
     db_item.sqlmodel_update(data)
+    db_item.merchant_id = merchant_id
+    db_item.user_id = current_user.id
+    
     session.add(db_item)
     await session.commit()
     await session.refresh(db_item)

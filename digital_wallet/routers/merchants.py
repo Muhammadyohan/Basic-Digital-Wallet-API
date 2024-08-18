@@ -129,7 +129,18 @@ async def update_merchant(
     if db_merchant.user_id != current_user.id:
         raise HTTPException(status_code=403, detail="Forbidden")
 
+    first_name = db_merchant.first_name
+    last_name = db_merchant.last_name
+    email = db_merchant.email
+    telephone = db_merchant.telephone
+
     db_merchant.sqlmodel_update(data)
+    db_merchant.first_name = first_name
+    db_merchant.last_name = last_name
+    db_merchant.email = email
+    db_merchant.telephone = telephone
+    db_merchant.user_id = current_user.id
+
     session.add(db_merchant)
     await session.commit()
     await session.refresh(db_merchant)

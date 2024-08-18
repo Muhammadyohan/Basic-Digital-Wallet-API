@@ -21,9 +21,9 @@ class DBMerchant(Merchant, SQLModel, table=True):
 
     items: list["DBItem"] = Relationship(back_populates="merchant", cascade_delete=True)
 
-    wallet: Optional["DBWallet"] = Relationship(
-        back_populates="merchant", cascade_delete=True
-    )
+    # wallet: Optional["DBWallet"] = Relationship(
+    #     back_populates="merchant", cascade_delete=True
+    # )
 
 
 class DBItem(Item, SQLModel, table=True):
@@ -43,8 +43,11 @@ class DBWallet(Wallet, SQLModel, table=True):
     __tablename__ = "wallets"
     id: Optional[int] = Field(default=None, primary_key=True)
 
-    merchant_id: Optional[int] = Field(default=None, foreign_key="merchants.id")
-    merchant: Optional[DBMerchant] = Relationship(back_populates="wallet")
+    user_id: Optional[int] = Field(default=None, foreign_key="users.id")
+    user: Optional["DBUser"] = Relationship()
+
+    # merchant_id: Optional[int] = Field(default=None, foreign_key="merchants.id")
+    # merchant: Optional[DBMerchant] = Relationship(back_populates="wallet")
 
     transactions: list["DBTransaction"] = Relationship(back_populates="wallet")
 

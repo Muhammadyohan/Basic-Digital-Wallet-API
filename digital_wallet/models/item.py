@@ -7,6 +7,7 @@ class BaseItem(BaseModel):
     name: str
     description: str | None = None
     price: float = 0.12
+    stock: int = 1
     tax: float | None = None
     user_id: int | None = 0
     merchant_id: int | None = 0
