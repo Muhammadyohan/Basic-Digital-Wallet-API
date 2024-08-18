@@ -1,8 +1,10 @@
+import math
+
 from fastapi import APIRouter, HTTPException, Depends
 
 from typing import Annotated
 
-from sqlmodel import select
+from sqlmodel import select, func
 from sqlmodel.ext.asyncio.session import AsyncSession
 
 from .. import security
@@ -14,6 +16,7 @@ from ..models.user import User
 
 router = APIRouter(prefix="/merchants", tags=["merchant"])
 
+SIZE_PER_PAGE = 50
 
 @router.post("")
 async def create_merchant(
@@ -35,18 +38,23 @@ async def create_merchant(
 async def get_merchants(
     session: Annotated[AsyncSession, Depends(models.get_session)],
     page: int = 1,
-    page_size: int = 10,
 ) -> MerchantList:
     result = await session.exec(
-        select(DBMerchant).offset((page - 1) * page_size).limit(page_size)
+        select(DBMerchant).offset((page - 1) * SIZE_PER_PAGE).limit(SIZE_PER_PAGE)
     )
     db_merchants = result.all()
+
+    page_count = int(
+        math.ceil(
+            (await session.exec(select(func.count(DBMerchant.id)))).first() / SIZE_PER_PAGE
+        )
+    )
 
     return MerchantList(
         merchants=db_merchants,
         page=page,
-        page_size=page_size,
-        size_per_page=len(db_merchants),
+        page_count=page_count,
+        size_per_page=SIZE_PER_PAGE,
     )
 
 

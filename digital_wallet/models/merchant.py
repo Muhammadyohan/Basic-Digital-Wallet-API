@@ -28,5 +28,5 @@ class MerchantList(BaseModel):
 
     merchants: list[Merchant]
     page: int
-    page_size: int
+    page_count: int
     size_per_page: int

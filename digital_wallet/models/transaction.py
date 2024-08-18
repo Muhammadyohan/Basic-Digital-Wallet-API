@@ -21,7 +21,8 @@ class Transaction(BaseTransaction):
 
 class TransactionList(BaseModel):
     model_config = ConfigDict(from_attributes=True)
+    
     transactions: list[Transaction]
     page: int
-    page_size: int
+    page_count: int
     size_per_page: int

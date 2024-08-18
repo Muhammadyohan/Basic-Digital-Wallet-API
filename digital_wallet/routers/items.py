@@ -1,8 +1,10 @@
+import math
+
 from fastapi import APIRouter, HTTPException, Depends
 
 from typing import Annotated
 
-from sqlmodel import select
+from sqlmodel import select, func
 from sqlmodel.ext.asyncio.session import AsyncSession
 
 from .. import security
@@ -14,6 +16,8 @@ from ..models.user import User
 
 
 router = APIRouter(prefix="/items", tags=["item"])
+
+SIZE_PER_PAGE = 50
 
 
 @router.post("/{merchant_id}")
@@ -37,15 +41,20 @@ async def create_item(
 async def get_items(
     session: Annotated[AsyncSession, Depends(models.get_session)],
     page: int = 1,
-    page_size: int = 10,
 ) -> ItemList:
     result = await session.exec(
-        select(DBItem).offset((page - 1) * page_size).limit(page_size)
+        select(DBItem).offset((page - 1) * SIZE_PER_PAGE).limit(SIZE_PER_PAGE)
     )
     db_items = result.all()
 
+    page_count = int(
+        math.ceil(
+            (await session.exec(select(func.count(DBItem.id)))).first() / SIZE_PER_PAGE
+        )
+    )
+
     return ItemList(
-        items=db_items, page=page, page_size=page_size, size_per_page=len(db_items)
+        items=db_items, page=page, page_count=page_count, size_per_page=SIZE_PER_PAGE
     )
 
 

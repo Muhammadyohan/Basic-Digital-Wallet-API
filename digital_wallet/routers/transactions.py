@@ -1,8 +1,10 @@
+import math
+
 from fastapi import APIRouter, HTTPException, Depends
 
 from typing import Annotated
 
-from sqlmodel import select
+from sqlmodel import select, func
 from sqlmodel.ext.asyncio.session import AsyncSession
 
 from .. import models
@@ -12,6 +14,7 @@ from ..models.db_models import DBTransaction, DBWallet, DBItem
 
 router = APIRouter(prefix="/transactions", tags=["transaction"])
 
+SIZE_PER_PAGE = 50
 
 @router.post("/{wallet_id}/{item_id}")
 async def create_transaction(
