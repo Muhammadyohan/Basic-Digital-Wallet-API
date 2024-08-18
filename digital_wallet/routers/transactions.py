@@ -80,6 +80,7 @@ async def create_transaction(
 
 @router.get("/{transaction_id}")
 async def get_transaction(
+    current_user: Annotated[User, Depends(security.get_current_active_user)],
     transaction_id: int,
     session: Annotated[AsyncSession, Depends(models.get_session)],
 ) -> Transaction:

@@ -39,6 +39,7 @@ async def create_wallet(
 
 @router.get("")
 async def get_wallets(
+    current_user: Annotated[User, Depends(security.get_current_active_user)],
     session: Annotated[AsyncSession, Depends(models.get_session)],
     page: int = 1,
 ) -> WalletList:
