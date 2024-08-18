@@ -2,7 +2,7 @@ from typing import Annotated
 
 from jwt.exceptions import InvalidTokenError
 
-from fastapi import Depends, APIRouter, HTTPException, status
+from fastapi import Depends, APIRouter, HTTPException, status, Request
 
 
 from sqlmodel import select
@@ -81,3 +81,33 @@ async def change_password(
     await session.commit()
     await session.refresh(user)
     return {"message": "Password changed successfully"}
+
+@router.put("/{user_id}/update")
+async def update_user(
+    request: Request,
+    user_id: int,
+    user_update: UpdateUser,
+    current_user: Annotated[User, Depends(security.get_current_active_user)],
+    session: Annotated[AsyncSession, Depends(models.get_session)],
+    ) -> User:
+
+    db_user = await session.get(DBUser, user_id)
+
+    if not db_user:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="User not found",
+        )
+    
+    if db_user.username != current_user.username:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="You are not authorized to update this user",
+        )
+    
+    db_user.sqlmodel_update(user_update)
+    session.add(db_user)
+    await session.commit()
+    await session.refresh(db_user)
+
+    return db_user
