@@ -27,14 +27,14 @@ async def create_item(
     merchant_id: int,
     session: Annotated[AsyncSession, Depends(models.get_session)],
 ) -> Item:
-    data = item.dict()
-    db_item = DBItem(**data)
+    db_item = DBItem.model_validate(item)
     db_item.merchant_id = merchant_id
+    db_item.user = current_user
     session.add(db_item)
     await session.commit()
     await session.refresh(db_item)
 
-    return Item.from_orm(db_item)
+    return Item.model_validate(db_item)
 
 
 @router.get("")
@@ -53,8 +53,13 @@ async def get_items(
         )
     )
 
-    return ItemList(
-        items=db_items, page=page, page_count=page_count, size_per_page=SIZE_PER_PAGE
+    return ItemList.model_validate(
+        dict(
+            items=db_items,
+            page=page,
+            page_count=page_count,
+            size_per_page=SIZE_PER_PAGE,
+        )
     )
 
 
@@ -67,7 +72,7 @@ async def get_item(
     if db_item is None:
         raise HTTPException(status_code=404, detail="Item not found")
 
-    return Item.from_orm(db_item)
+    return Item.model_validate(db_item)
 
 
 @router.put("/{item_id}")
@@ -77,17 +82,20 @@ async def update_item(
     item: UpdateItem,
     session: Annotated[AsyncSession, Depends(models.get_session)],
 ) -> Item:
+    data = item.model_dump(item)
     db_item = await session.get(DBItem, item_id)
     if db_item is None:
         raise HTTPException(status_code=404, detail="Item not found")
+    
+    if db_item.user_id != current_user.id:
+        raise HTTPException(status_code=403, detail="Forbidden")
 
-    for key, value in item.dict().items():
-        setattr(db_item, key, value)
-        session.add(db_item)
-        await session.commit()
-        await session.refresh(db_item)
+    db_item.sqlmodel_update(data)
+    session.add(db_item)
+    await session.commit()
+    await session.refresh(db_item)
 
-    return Item.from_orm(db_item)
+    return Item.model_validate(db_item)
 
 
 @router.delete("/{item_id}")
@@ -97,8 +105,12 @@ async def delete_item(
     session: Annotated[AsyncSession, Depends(models.get_session)],
 ) -> dict:
     db_item = await session.get(DBItem, item_id)
+
     if db_item is None:
         raise HTTPException(status_code=404, detail="Item not found")
+    
+    if db_item.user_id != current_user.id:
+        raise HTTPException(status_code=403, detail="Forbidden")
 
     await session.delete(db_item)
     await session.commit()

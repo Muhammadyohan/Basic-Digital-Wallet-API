@@ -18,6 +18,7 @@ router = APIRouter(prefix="/merchants", tags=["merchant"])
 
 SIZE_PER_PAGE = 50
 
+
 @router.post("")
 async def create_merchant(
     current_user: Annotated[User, Depends(security.get_current_active_user)],
@@ -50,15 +51,18 @@ async def get_merchants(
 
     page_count = int(
         math.ceil(
-            (await session.exec(select(func.count(DBMerchant.id)))).first() / SIZE_PER_PAGE
+            (await session.exec(select(func.count(DBMerchant.id)))).first()
+            / SIZE_PER_PAGE
         )
     )
 
     return MerchantList.model_validate(
-        dict(merchants=db_merchants,
-        page=page,
-        page_count=page_count,
-        size_per_page=SIZE_PER_PAGE,)
+        dict(
+            merchants=db_merchants,
+            page=page,
+            page_count=page_count,
+            size_per_page=SIZE_PER_PAGE,
+        )
     )
 
 
@@ -85,10 +89,10 @@ async def update_merchant(
 
     if db_merchant is None:
         raise HTTPException(status_code=404, detail="Item not found")
-    
+
     if db_merchant.user_id != current_user.id:
         raise HTTPException(status_code=403, detail="Forbidden")
-    
+
     db_merchant.sqlmodel_update(data)
     session.add(db_merchant)
     await session.commit()
@@ -107,7 +111,7 @@ async def delete_merchant(
 
     if db_merchant is None:
         raise HTTPException(status_code=404, detail="Item not found")
-    
+
     if db_merchant.user_id != current_user.id:
         raise HTTPException(status_code=403, detail="Forbidden")
 

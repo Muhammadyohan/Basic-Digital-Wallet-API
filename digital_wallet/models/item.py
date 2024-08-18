@@ -8,6 +8,8 @@ class BaseItem(BaseModel):
     description: str | None = None
     price: float = 0.12
     tax: float | None = None
+    user_id: int | None = 0
+    merchant_id: int | None = 0
 
 
 class CreateItem(BaseItem):
