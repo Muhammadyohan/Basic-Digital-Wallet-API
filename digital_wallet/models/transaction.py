@@ -1,11 +1,22 @@
 from pydantic import BaseModel, ConfigDict
 
+from .item import Item
+
 
 class BaseTransaction(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
     total_price: float
     quantity: int = 1
+    item_name: str | None = None
+    item_id: int | None = 0
+    merchant_first_name: str | None = None
+    merchant_last_name: str | None = None
+    merchant_id: int | None = 0
+    metchant_user_id: int | None = 0
+    user_first_name: str | None = None
+    user_last_name: str | None = None
+    user_id: int | None = 0
 
 
 class CreateTransaction(BaseTransaction):

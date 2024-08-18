@@ -32,11 +32,11 @@ async def login_for_access_token(
     )
 
     db_user = result.one_or_none()
-    db_user = db_user.dict()
 
     if db_user is None:
         raise HTTPException(status_code=404, detail="Incorrect username")
 
+    db_user = db_user.dict()
     user = security.authenticate_user(db_user, form_data.username, form_data.password)
 
     if not user:
