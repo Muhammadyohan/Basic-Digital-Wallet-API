@@ -1,3 +1,5 @@
+import datetime
+
 from typing import Optional
 
 from sqlmodel import Field, SQLModel, Relationship
@@ -53,6 +55,9 @@ class DBTransaction(Transaction, SQLModel, table=True):
 
 class DBUser(User, SQLModel, table=True):
     __tablename__ = "users"
-    __table_args__ = (UniqueConstraint("username"),)
     id: Optional[int] = Field(default=None, primary_key=True)
     hashed_password: str
+
+    register_date: datetime.datetime = Field(default_factory=datetime.datetime.now)
+    updated_date: datetime.datetime = Field(default_factory=datetime.datetime.now)
+    last_login_date: datetime.datetime | None = Field(default=None)
