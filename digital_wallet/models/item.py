@@ -26,7 +26,7 @@ class Item(BaseItem):
 
 class ItemList(BaseModel):
     model_config = ConfigDict(from_attributes=True)
-    
+
     items: list[Item]
     page: int
     page_count: int

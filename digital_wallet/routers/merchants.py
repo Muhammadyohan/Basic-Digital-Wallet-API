@@ -11,7 +11,8 @@ from .. import security
 from .. import models
 
 from ..models.merchant import Merchant, CreateMerchant, UpdateMerchant, MerchantList
-from ..models.db_models import DBMerchant
+from ..models.item import ItemList
+from ..models.db_models import DBMerchant, DBItem
 from ..models.user import User
 
 router = APIRouter(prefix="/merchants", tags=["merchant"])
@@ -75,6 +76,41 @@ async def get_merchant(
         raise HTTPException(status_code=404, detail="Item not found")
 
     return Merchant.model_validate(db_merchant)
+
+
+@router.get("/{merchant_id}/items")
+async def get_merchant_items(
+    merchant_id: int,
+    session: Annotated[AsyncSession, Depends(models.get_session)],
+    page: int = 1,
+) -> ItemList:
+    db_merchant = await session.get(DBMerchant, merchant_id)
+    if db_merchant is None:
+        raise HTTPException(status_code=404, detail="Item not found")
+
+    result = await session.exec(
+        select(DBItem)
+        .where(DBItem.merchant_id == merchant_id)
+        .offset((page - 1) * SIZE_PER_PAGE)
+        .limit(SIZE_PER_PAGE)
+    )
+
+    db_items = result.all()
+
+    page_count = int(
+        math.ceil(
+            (await session.exec(select(func.count(DBItem.id)))).first() / SIZE_PER_PAGE
+        )
+    )
+
+    return ItemList.model_validate(
+        dict(
+            items=db_items,
+            page=page,
+            page_count=page_count,
+            size_per_page=SIZE_PER_PAGE,
+        )
+    )
 
 
 @router.put("/{merchant_id}")

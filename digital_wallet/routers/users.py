@@ -49,20 +49,13 @@ async def read_users_me(
     return current_user
 
 
-@router.get("/me/items")
-async def read_own_items(
-    current_user: Annotated[User, Depends(security.get_current_active_user)],
-):
-    return [{"item_id": "Foo", "owner": current_user.username}]
-
-
 @router.put("/{user_id}/change_password")
 async def change_password(
     user_id: int,
     password_update: ChangePassword,
     current_user: Annotated[User, Depends(security.get_current_active_user)],
     session: Annotated[AsyncSession, Depends(models.get_session)],
-) -> dict(): # type: ignore
+) -> dict():  # type: ignore
     user = await session.get(DBUser, user_id)
     if not user:
         raise HTTPException(
@@ -70,7 +63,9 @@ async def change_password(
             detail="User not found",
         )
 
-    if not security.verify_password(password_update.current_password, user.hashed_password):
+    if not security.verify_password(
+        password_update.current_password, user.hashed_password
+    ):
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Password is incorrect",
@@ -82,6 +77,7 @@ async def change_password(
     await session.refresh(user)
     return {"message": "Password changed successfully"}
 
+
 @router.put("/{user_id}/update")
 async def update_user(
     request: Request,
@@ -89,7 +85,7 @@ async def update_user(
     user_update: UpdateUser,
     current_user: Annotated[User, Depends(security.get_current_active_user)],
     session: Annotated[AsyncSession, Depends(models.get_session)],
-    ) -> User:
+) -> User:
 
     db_user = await session.get(DBUser, user_id)
 
@@ -98,13 +94,13 @@ async def update_user(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="User not found",
         )
-    
+
     if db_user.username != current_user.username:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="You are not authorized to update this user",
         )
-    
+
     db_user.sqlmodel_update(user_update)
     session.add(db_user)
     await session.commit()

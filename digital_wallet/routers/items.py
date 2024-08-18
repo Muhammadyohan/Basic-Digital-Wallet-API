@@ -82,11 +82,12 @@ async def update_item(
     item: UpdateItem,
     session: Annotated[AsyncSession, Depends(models.get_session)],
 ) -> Item:
-    data = item.model_dump(item)
+    data = item.model_dump()
     db_item = await session.get(DBItem, item_id)
+
     if db_item is None:
         raise HTTPException(status_code=404, detail="Item not found")
-    
+
     if db_item.user_id != current_user.id:
         raise HTTPException(status_code=403, detail="Forbidden")
 
@@ -108,7 +109,7 @@ async def delete_item(
 
     if db_item is None:
         raise HTTPException(status_code=404, detail="Item not found")
-    
+
     if db_item.user_id != current_user.id:
         raise HTTPException(status_code=403, detail="Forbidden")
 

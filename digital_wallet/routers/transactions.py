@@ -16,6 +16,7 @@ router = APIRouter(prefix="/transactions", tags=["transaction"])
 
 SIZE_PER_PAGE = 50
 
+
 @router.post("/{wallet_id}/{item_id}")
 async def create_transaction(
     transaction: CreateTransaction,
@@ -87,7 +88,7 @@ async def delete_transaction(
     db_transaction = await session.get(DBTransaction, transaction_id)
     if db_transaction is None:
         raise HTTPException(status_code=404, detail="Item not found")
-    
+
     await session.delete(db_transaction)
     await session.commit()
 
