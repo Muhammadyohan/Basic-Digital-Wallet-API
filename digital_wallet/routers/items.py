@@ -5,10 +5,12 @@ from typing import Annotated
 from sqlmodel import select
 from sqlmodel.ext.asyncio.session import AsyncSession
 
+from .. import security
 from .. import models
 
 from ..models.item import Item, CreateItem, UpdateItem, ItemList
 from ..models.db_models import DBItem
+from ..models.user import User
 
 
 router = APIRouter(prefix="/items", tags=["item"])
@@ -16,6 +18,7 @@ router = APIRouter(prefix="/items", tags=["item"])
 
 @router.post("/{merchant_id}")
 async def create_item(
+    current_user: Annotated[User, Depends(security.get_current_active_user)],
     item: CreateItem,
     merchant_id: int,
     session: Annotated[AsyncSession, Depends(models.get_session)],
@@ -60,6 +63,7 @@ async def get_item(
 
 @router.put("/{item_id}")
 async def update_item(
+    current_user: Annotated[User, Depends(security.get_current_active_user)],
     item_id: int,
     item: UpdateItem,
     session: Annotated[AsyncSession, Depends(models.get_session)],
@@ -67,6 +71,7 @@ async def update_item(
     db_item = await session.get(DBItem, item_id)
     if db_item is None:
         raise HTTPException(status_code=404, detail="Item not found")
+
     for key, value in item.dict().items():
         setattr(db_item, key, value)
         session.add(db_item)
@@ -78,11 +83,14 @@ async def update_item(
 
 @router.delete("/{item_id}")
 async def delete_item(
-    item_id: int, session: Annotated[AsyncSession, Depends(models.get_session)]
+    current_user: Annotated[User, Depends(security.get_current_active_user)],
+    item_id: int,
+    session: Annotated[AsyncSession, Depends(models.get_session)],
 ) -> dict:
     db_item = await session.get(DBItem, item_id)
     if db_item is None:
         raise HTTPException(status_code=404, detail="Item not found")
+
     await session.delete(db_item)
     await session.commit()
 

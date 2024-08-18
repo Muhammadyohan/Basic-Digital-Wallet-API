@@ -14,10 +14,10 @@ from .. import models
 from ..models.user import User, CreateUser, UpdateUser
 from ..models.db_models import DBUser
 
-router = APIRouter()
+router = APIRouter(prefix="/users", tags=["users"])
 
 
-@router.post("/users")
+@router.post("")
 async def create_user(
     user: CreateUser,
     password: str,
@@ -26,20 +26,22 @@ async def create_user(
     data = user.dict()
     db_user = DBUser(**data)
     db_user.hashed_password = security.get_password_hash(password)
+
     session.add(db_user)
     await session.commit()
     await session.refresh(db_user)
+
     return db_user
 
 
-@router.get("/users/me", response_model=User)
+@router.get("/me", response_model=User)
 async def read_users_me(
     current_user: Annotated[User, Depends(security.get_current_active_user)],
 ):
     return current_user
 
 
-@router.get("/users/me/items")
+@router.get("/me/items")
 async def read_own_items(
     current_user: Annotated[User, Depends(security.get_current_active_user)],
 ):

@@ -22,8 +22,10 @@ async def create_wallet(
     data = wallet.dict()
     db_wallet = DBWallet(**data)
     db_wallet.merchant_id = merchant_id
+
     db_merchant = await session.get(DBMerchant, merchant_id)
     db_wallet.merchant_name = db_merchant.name
+
     session.add(db_wallet)
     await session.commit()
     await session.refresh(db_wallet)
@@ -39,6 +41,7 @@ async def get_wallet(
     db_wallet = await session.get(DBWallet, wallet_id)
     if db_wallet is None:
         raise HTTPException(status_code=404, detail="Item not found")
+
     return Wallet.from_orm(db_wallet)
 
 
@@ -51,6 +54,7 @@ async def update_wallet(
     db_wallet = await session.get(DBWallet, wallet_id)
     if db_wallet is None:
         raise HTTPException(status_code=404, detail="Item not found")
+
     for key, value in wallet.dict().items():
         setattr(db_wallet, key, value)
 
@@ -69,6 +73,7 @@ async def delete_wallet(
     db_wallet = await session.get(DBWallet, wallet_id)
     if db_wallet is None:
         raise HTTPException(status_code=404, detail="Item not found")
+
     await session.delete(db_wallet)
     await session.commit()
 

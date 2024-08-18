@@ -63,9 +63,10 @@ async def get_transactions(
     wallet_id: int,
     session: Annotated[AsyncSession, Depends(models.get_session)],
 ) -> TransactionList:
-    db_transactions = await session.exec(
+    result = await session.exec(
         select(DBTransaction).where(DBTransaction.wallet_id == wallet_id)
-    ).all()
+    )
+    db_transactions = result.all()
 
     return TransactionList(
         transactions=db_transactions,
@@ -83,6 +84,7 @@ async def delete_transaction(
     db_transaction = await session.get(DBTransaction, transaction_id)
     if db_transaction is None:
         raise HTTPException(status_code=404, detail="Item not found")
+    
     await session.delete(db_transaction)
     await session.commit()
 

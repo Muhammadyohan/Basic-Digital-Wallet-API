@@ -5,20 +5,25 @@ from typing import Annotated
 from sqlmodel import select
 from sqlmodel.ext.asyncio.session import AsyncSession
 
+from .. import security
 from .. import models
 
 from ..models.merchant import Merchant, CreateMerchant, UpdateMerchant, MerchantList
 from ..models.db_models import DBMerchant
+from ..models.user import User
 
 router = APIRouter(prefix="/merchants", tags=["merchant"])
 
 
 @router.post("")
 async def create_merchant(
-    item: CreateMerchant, session: Annotated[AsyncSession, Depends(models.get_session)]
+    current_user: Annotated[User, Depends(security.get_current_active_user)],
+    item: CreateMerchant,
+    session: Annotated[AsyncSession, Depends(models.get_session)],
 ) -> Merchant:
     data = item.dict()
     db_merchant = DBMerchant(**data)
+
     session.add(db_merchant)
     await session.commit()
     await session.refresh(db_merchant)
@@ -58,6 +63,7 @@ async def get_merchant(
 
 @router.put("/{merchant_id}")
 async def update_merchant(
+    current_user: Annotated[User, Depends(security.get_current_active_user)],
     merchant_id: int,
     merchant: UpdateMerchant,
     session: Annotated[AsyncSession, Depends(models.get_session)],
@@ -77,11 +83,14 @@ async def update_merchant(
 
 @router.delete("/{merchant_id}")
 async def delete_merchant(
-    merchant_id: int, session: Annotated[AsyncSession, Depends(models.get_session)]
+    current_user: Annotated[User, Depends(security.get_current_active_user)],
+    merchant_id: int,
+    session: Annotated[AsyncSession, Depends(models.get_session)],
 ) -> dict:
     db_merchant = await session.get(DBMerchant, merchant_id)
     if db_merchant is None:
         raise HTTPException(status_code=404, detail="Item not found")
+
     await session.delete(db_merchant)
     await session.commit()
 
