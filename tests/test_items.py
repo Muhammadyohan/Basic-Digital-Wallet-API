@@ -54,3 +54,35 @@ async def test_update_items(
     assert data["price"] == payload["price"]
     assert data["stock"] == payload["stock"]
     assert data["id"] == item_user1.id
+
+
+@pytest.mark.asyncio
+async def test_delete_item(
+    client: AsyncClient, item_user1: models.DBItem, token_user1: models.Token
+):
+    headers = {"Authorization": f"{token_user1.token_type} {token_user1.access_token}"}
+
+    response = await client.delete(f"/items/{item_user1.id}", headers=headers)
+
+    assert response.status_code == 200
+    assert response.json() == {"message": "Item deleted successfully"}
+
+
+@pytest.mark.asyncio
+async def test_list_items(client: AsyncClient, item_user1: models.DBItem):
+
+    response = await client.get("/items")
+
+    data = response.json()
+
+    assert response.status_code == 200
+    assert len(data["items"]) > 0
+    check_items = None
+
+    for item in data["items"]:
+        if item["name"] == item_user1.name:
+            check_item = item
+            break
+
+    assert check_item["id"] == item_user1.id
+    assert check_item["name"] == item_user1.name
