@@ -1,7 +1,8 @@
-from . import items, merchants, wallets, transactions, users, authentication
+from . import items, merchants, wallets, transactions, users, authentication, root
 
 
 def init_routers(app):
+    app.include_router(root.router)
     app.include_router(items.router)
     app.include_router(merchants.router)
     app.include_router(wallets.router)
