@@ -48,7 +48,7 @@ class Token(BaseModel):
     expires_at: datetime.datetime
     scope: str
     issued_at: datetime.datetime
-    user_id: int
+    user_id: str
 
 
 class TokenData(BaseModel):

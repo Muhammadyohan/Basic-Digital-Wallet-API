@@ -93,7 +93,7 @@ async def get_current_user(
     )
     try:
         payload = jwt.decode(token, settings.SECRET_KEY, algorithms=[ALGORITHM])
-        username: str = payload.get("sub")
+        username: str = str(payload.get("sub"))
         if username is None:
             raise credentials_exception
         token_data = TokenData(username=username)
@@ -101,11 +101,11 @@ async def get_current_user(
         raise credentials_exception
 
     result = await session.exec(
-        select(DBUser).where(DBUser.username == token_data.username)
+        select(DBUser).where(DBUser.id == int(token_data.username))
     )
 
     db_user = result.one_or_none()
-    db_user = db_user.dict()
+    db_user = db_user.model_dump()
 
     if db_user is None:
         raise credentials_exception

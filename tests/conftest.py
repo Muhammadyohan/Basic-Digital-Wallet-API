@@ -121,8 +121,8 @@ async def oauth_token_user1(user1: models.DBUser) -> dict:
         scope="",
         expires_in=settings.ACCESS_TOKEN_EXPIRE_MINUTES,
         expires_at=datetime.datetime.now() + access_token_expires,
-        issued_at=user.last_login_date,
-        user_id=user.id,
+        issued_at=datetime.datetime.now(),
+        user_id=str(user.id),
     )
 
 
@@ -145,7 +145,7 @@ async def example_merchant_user1(
         return merchant
 
     merchant = models.DBMerchant(
-        first_name=first_name, user=user1, decription="Merchant Description"
+        first_name=first_name, user=user1, description="Merchant Description"
     )
 
     session.add(merchant)
