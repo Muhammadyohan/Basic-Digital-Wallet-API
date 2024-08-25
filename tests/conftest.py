@@ -130,12 +130,10 @@ async def oauth_token_user1(user1: models.DBUser) -> dict:
 async def example_merchant_user1(
     session: models.AsyncSession, user1: models.DBUser
 ) -> models.DBMerchant:
-    first_name = "merchant1"
 
     query = await session.exec(
         models.select(models.DBMerchant)
         .where(
-            models.DBMerchant.first_name == first_name,
             models.DBMerchant.user_id == user1.id,
         )
         .limit(1)
@@ -144,11 +142,46 @@ async def example_merchant_user1(
     if merchant:
         return merchant
 
-    merchant = models.DBMerchant(
-        first_name=first_name, user=user1, description="Merchant Description"
-    )
+    merchant = models.DBMerchant(user=user1, description="Merchant Description")
 
     session.add(merchant)
     await session.commit()
     await session.refresh(merchant)
     return merchant
+
+
+@pytest_asyncio.fixture(name="item_user1")
+async def example_item_user1(
+    session: models.AsyncSession,
+    user1: models.DBUser,
+    merchant_user1: models.DBMerchant,
+) -> models.DBItem:
+    name = "item1"
+    price = 100
+    stock = 10
+
+    query = await session.exec(
+        models.select(models.DBItem)
+        .where(
+            models.DBItem.name == name,
+            models.DBItem.user_id == user1.id,
+        )
+        .limit(1)
+    )
+    item = query.one_or_none()
+    if item:
+        return item
+
+    item = models.DBItem(
+        name=name,
+        user=user1,
+        merchant_id=merchant_user1.id,
+        description="Item Description",
+        price=price,
+        stock=stock,
+    )
+
+    session.add(item)
+    await session.commit()
+    await session.refresh(item)
+    return item
